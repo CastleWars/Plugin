@@ -248,15 +248,7 @@ public void onEntityDamage(EntityDamageEvent e) {
 	}
 }
 
-@EventHandler
-public void onPlayerFish(PlayerFishEvent event) {
- Player p = event.getPlayer();
- Location loc = p.getLocation();
- Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
-  irongolem.setCustomName(ChatColor.BLUE + "§lKing blue");
-  Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId());
 }
-
 
 
 
