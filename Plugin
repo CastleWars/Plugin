@@ -1,0 +1,181 @@
+package me.castlewars;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class Plugin extends JavaPlugin implements Listener {
+	int players = 0;
+
+
+
+	public void onEnable(){
+		getServer().getPluginManager().registerEvents(this, this);
+		System.out.print("Castle Wars plugin enabled!");
+	}
+		public void onDisable(){
+			System.out.print("Castle Wars plugin disabled!");
+	
+}
+	@EventHandler
+	 public void onSignChange(SignChangeEvent e)
+	 {
+	   if (e.getLine(0).equalsIgnoreCase("[Castle_Hill]")) {
+	     e.setLine(0, "§6[CW]");
+	     e.setLine(1, "§1Castle_Hill");
+	   }
+	    }
+	 @EventHandler
+	    public void onPlayerInteract100(PlayerInteractEvent e) {
+	   if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+	       if ((e.getClickedBlock().getState() instanceof Sign)) {
+	               BlockState bs = e.getClickedBlock().getState();
+	         Sign s = (Sign) bs;
+	         if (s.getLine(1).equalsIgnoreCase("§1Castle_Hill")) {
+	          if (players < 8) {
+	           players = players + 1;
+	           if (players == 8) {
+	            CountDown();
+	            players=0;
+	               s.setLine(2, players + "/8");            
+	               s.update();  
+	           } else {                          
+	            s.setLine(2, players + "/8");            
+	            s.update();  
+	           }
+	          }else {
+
+	           
+	           s.setLine(2, players + "/8");            
+	           s.update();  
+	          }
+	         
+	         
+	         }
+	      }
+	    } 
+	 public int countNumber = 3;
+	 public void CountDown() {
+	  Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+	   public void run() {
+	    if(countNumber !=-1) {
+	    if(countNumber !=0) {
+	     Bukkit.broadcastMessage("" + countNumber);
+	     countNumber--;
+	    } else {
+	     Bukkit.broadcastMessage("GO!");
+	     countNumber--;
+	     Game();
+	    }
+	    }
+	   }
+	  }, 10L, 20L);
+
+	  countNumber = 3;
+	 }
+	 
+	 @SuppressWarnings("deprecation")
+	public void Game() {
+		 for(Player player2 : Bukkit.getOnlinePlayers()){
+             if(player2.getWorld().equals("CastleWars")){ 
+            	 givePermissionX(player2, 1);
+		 }
+	}
+	 }
+
+
+public void givePermissionX(Player p, int i) {
+	getConfig().set(p.getName() + ".PermissionX", getConfig().getInt(p.getName() + ".PermissionX", 0) + i);
+	saveConfig();
+}
+
+
+@SuppressWarnings("deprecation")
+@EventHandler 
+public void onRightClick(PlayerInteractEvent event) {
+	 Player p = event.getPlayer();
+	 if(p.getItemInHand().getType() == Material.BLAZE_ROD){
+	 Action a = event.getAction();
+	 if(a.equals(Action.RIGHT_CLICK_AIR));
+	// int value = getConfig().getInt(p.getName() + ".PermissionX");
+     //if(value == 1) {
+     if (Cooldowns.tryCooldown(p, "z", 12000)) {
+     p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
+     Block x = p.getTargetBlock(null, 256);
+     p.getWorld().strikeLightning(x.getWorld().getHighestBlockAt(x.getLocation()).getLocation().clone().add(0.0D, 1.0D, 0.0D)).setFireTicks(0);
+               
+
+    
+	}else{
+		   p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z") / 1000) + " seconds left!");
+           p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+	}
+	}else{
+		 if(p.getItemInHand().getType() == Material.STICK){
+			 Block x = p.getTargetBlock(null, 256);
+			 Location z = x.getLocation();
+			 p.teleport(z);	
+		 }else{
+			 if(p.getItemInHand().getType() == Material.TORCH){
+				 @SuppressWarnings("unused")
+				Fireball A = p.getPlayer().launchProjectile(Fireball.class);
+             	p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
+}
+	}
+	}
+}
+	 @EventHandler
+	 public void onRightClick1(PlayerInteractEntityEvent event){
+		 Player p = event.getPlayer();
+		 Entity entity = event.getRightClicked();
+		 if(entity.getCustomName().equalsIgnoreCase(ChatColor.DARK_PURPLE + "Sorcerer"));
+		 ItemStack BREAD = new ItemStack (Material.BLAZE_ROD);
+         ItemMeta BREADMeta = BREAD.getItemMeta();
+    
+         BREADMeta.setDisplayName(ChatColor.DARK_PURPLE + "<=Lighning Wand=>");
+         BREAD.setItemMeta(BREADMeta);
+		 p.getInventory().addItem(new ItemStack(BREAD));
+		 
+		 ItemStack BREAD1 = new ItemStack (Material.STICK);
+         ItemMeta BREAD1Meta = BREAD1.getItemMeta();
+    
+         BREAD1Meta.setDisplayName(ChatColor.LIGHT_PURPLE + "<=Teleportation Wand=>");
+         BREAD1.setItemMeta(BREAD1Meta);
+		 p.getInventory().addItem(new ItemStack(BREAD1));
+		 
+}
+
+
+@EventHandler
+public void onPlayerFish(PlayerFishEvent event) {
+	Player p = event.getPlayer();
+	Location loc = p.getLocation();
+	Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
+	 irongolem.setCustomName(ChatColor.DARK_PURPLE + "Sorcerer");
+	 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
+}
+}
+
+
+
+
+
