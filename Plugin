@@ -29,13 +29,18 @@ public class Plugin extends JavaPlugin implements Listener {
 
 
 	public void onEnable(){
-		getServer().getPluginManager().registerEvents(this, this);
-		System.out.print("Castle Wars plugin enabled!");
-	}
-		public void onDisable(){
-			System.out.print("Castle Wars plugin disabled!");
-	
-}
+	  System.out.print("Castle Wars plugin enabled!");
+	  getConfig().addDefault("CastleWars.KingBlue", 100);
+	  getConfig().addDefault("CastleWars.KingRed", 100);
+	  getConfig().addDefault("CastleWars.KillsBlue", 0);
+	  getConfig().addDefault("CastleWars.KillsRed", 0);
+		getConfig().options().copyDefaults(true);
+      Bukkit.getServer().getPluginManager().registerEvents(this, this);
+	    saveConfig();
+	  for(Player player2 : Bukkit.getOnlinePlayers()){
+          ScoreBoardUpdate(player2);
+          }
+	 }
 	@EventHandler
 	 public void onSignChange(SignChangeEvent e)
 	 {
@@ -173,6 +178,83 @@ public void onPlayerFish(PlayerFishEvent event) {
 	 irongolem.setCustomName(ChatColor.DARK_PURPLE + "Sorcerer");
 	 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
 }
+}
+
+
+@EventHandler
+public void onDeath(PlayerDeathEvent e) {
+	if(e.getEntity().getWorld().equals("CastleWars")) {
+		//TODO: damage to shield
+		//TODO: clear inv.
+		//TODO: on kill get 1 point extra.
+	}
+}
+int kingRed = 100;
+int kingBlue = 100;
+int shieldBlue = 100;
+int shieldRed = 100;
+public void ScoreBoardUpdate(Player p) {
+	ScoreboardManager manager = Bukkit.getScoreboardManager();
+	//TODO: dit is het scoreboard lol ;)
+    Scoreboard scoreboard = manager.getNewScoreboard();
+    Objective obj = scoreboard.registerNewObjective("Board", "dummy");
+    obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+    obj.setDisplayName(ChatColor.BLUE + "§lCastle" + ChatColor.RED + "§lWars");
+    Score space = obj.getScore(ChatColor.BLUE + " ");
+    space.setScore(8);
+    Score kBlue = obj.getScore(ChatColor.BLUE + "§lKing blue:   " + ChatColor.GOLD + kingBlue);
+    kBlue.setScore(7);
+    Score sBlue = obj.getScore(ChatColor.BLUE + "§lShield blue: " + ChatColor.GOLD + shieldBlue);
+    sBlue.setScore(6);
+    Score pBlue = obj.getScore(ChatColor.BLUE + "Blue players:  ");
+    pBlue.setScore(5);
+    Score Line = obj.getScore(ChatColor.GOLD + "  ");
+    Line.setScore(4);
+    Score deaths = obj.getScore(ChatColor.RED + "§lKing red:    " + ChatColor.GOLD + kingRed);
+    deaths.setScore(3);
+    Score sRed = obj.getScore(ChatColor.RED + "§lShield red:  " + ChatColor.GOLD + shieldRed);
+    sRed.setScore(2);
+    Score pRed = obj.getScore(ChatColor.RED + "Red players: ");
+    pRed.setScore(1);
+    p.setScoreboard(scoreboard);
+	//TODO: king health 
+	//TODO: amount players per team
+	//TODO: Shield blue team
+	//TODO: shield red team
+}
+
+@EventHandler
+public void onPlayerJoin(PlayerJoinEvent e) {
+	e.getPlayer().sendMessage("test1");
+	ScoreBoardUpdate(e.getPlayer());
+	e.getPlayer().sendMessage("test2");
+}
+
+@EventHandler
+public void onEntityDamage(EntityDamageEvent e) {
+	
+		System.out.print("debug1");
+			if (e.getEntity().getCustomName().equals(ChatColor.BLUE + "§lKing blue")) {
+				System.out.print("debug2");
+				kingBlue = kingBlue - 1;
+				for(Player player2 : Bukkit.getOnlinePlayers()){
+			          ScoreBoardUpdate(player2);
+			          }
+				e.setCancelled(true);
+			} else if (e.getEntity().getCustomName().equals("§lKing red")) {
+				
+			
+		
+	}
+}
+
+@EventHandler
+public void onPlayerFish(PlayerFishEvent event) {
+ Player p = event.getPlayer();
+ Location loc = p.getLocation();
+ Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
+  irongolem.setCustomName(ChatColor.BLUE + "§lKing blue");
+  Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId());
 }
 
 
