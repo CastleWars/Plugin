@@ -1,27 +1,47 @@
 package me.castlewars;
 
+package me.castlewars;
+
+
+import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 public class Plugin extends JavaPlugin implements Listener {
 	int players = 0;
@@ -29,18 +49,17 @@ public class Plugin extends JavaPlugin implements Listener {
 
 
 	public void onEnable(){
-	  System.out.print("Castle Wars plugin enabled!");
-	  getConfig().addDefault("CastleWars.KingBlue", 100);
-	  getConfig().addDefault("CastleWars.KingRed", 100);
-	  getConfig().addDefault("CastleWars.KillsBlue", 0);
-	  getConfig().addDefault("CastleWars.KillsRed", 0);
-		getConfig().options().copyDefaults(true);
-      Bukkit.getServer().getPluginManager().registerEvents(this, this);
-	    saveConfig();
-	  for(Player player2 : Bukkit.getOnlinePlayers()){
-          ScoreBoardUpdate(player2);
-          }
-	 }
+		getServer().getPluginManager().registerEvents(this, this);
+		System.out.print("Castle Wars plugin enabled!");
+		
+	}
+		
+
+	
+		public void onDisable(){
+			System.out.print("Castle Wars plugin disabled!");
+	
+}
 	@EventHandler
 	 public void onSignChange(SignChangeEvent e)
 	 {
@@ -112,18 +131,27 @@ public void givePermissionX(Player p, int i) {
 	getConfig().set(p.getName() + ".PermissionX", getConfig().getInt(p.getName() + ".PermissionX", 0) + i);
 	saveConfig();
 }
+public void giveOgre(Player p, int i) {
+	getConfig().set(p.getName() + ".Ogre", getConfig().getInt(p.getName() + ".Ogre", 0) + i);
+	saveConfig();
+}
+public void takeOgre(Player p, int i) {
+	getConfig().set(p.getName() + ".Ogre", getConfig().getInt(p.getName() + ".Ogre", 0) - i);
+	saveConfig();
+}
 
 
 @SuppressWarnings("deprecation")
 @EventHandler 
 public void onRightClick(PlayerInteractEvent event) {
 	 Player p = event.getPlayer();
+	// if(p.getWorld().equals("CastleWars"))
 	 if(p.getItemInHand().getType() == Material.BLAZE_ROD){
 	 Action a = event.getAction();
 	 if(a.equals(Action.RIGHT_CLICK_AIR));
 	// int value = getConfig().getInt(p.getName() + ".PermissionX");
      //if(value == 1) {
-     if (Cooldowns.tryCooldown(p, "z", 12000)) {
+     if (Cooldowns.tryCooldown(p, "z", 4000)) {
      p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
      Block x = p.getTargetBlock(null, 256);
      p.getWorld().strikeLightning(x.getWorld().getHighestBlockAt(x.getLocation()).getLocation().clone().add(0.0D, 1.0D, 0.0D)).setFireTicks(0);
@@ -136,47 +164,567 @@ public void onRightClick(PlayerInteractEvent event) {
 	}
 	}else{
 		 if(p.getItemInHand().getType() == Material.STICK){
+			 if (Cooldowns.tryCooldown(p, "z1", 18000)) {
 			 Block x = p.getTargetBlock(null, 256);
 			 Location z = x.getLocation();
 			 p.teleport(z);	
+			 p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
 		 }else{
+			 
+			 p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z1") / 1000) + " seconds left!");
+	           p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+			 return;
+		 }
+		 }else{
+		 }
 			 if(p.getItemInHand().getType() == Material.TORCH){
+				 if (Cooldowns.tryCooldown(p, "z2", 4000)) {
 				 @SuppressWarnings("unused")
 				Fireball A = p.getPlayer().launchProjectile(Fireball.class);
              	p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
-}
+             	
+				 }else{
+					 p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z2") / 1000) + " seconds left!");
+			           p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+					 return;
+				 }
+				 }else{
+					 if(p.getItemInHand().getType() == Material.REDSTONE_TORCH_ON){ 
+						 if (Cooldowns.tryCooldown(p, "z3", 12000)) { 
+					     for(Entity e : p.getNearbyEntities(10,5,10))
+					         ((LivingEntity)e).addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,200, 200), true);    
+					     		p.playSound(p.getLocation(), Sound.NOTE_PLING, 5, 5);
+					     	
+
+						 }else{
+							 p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z3") / 1000) + " seconds left!");
+					           p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+							 return;
+						 }
+						 }else{
+							 if(p.getItemInHand().getType() == Material.FEATHER){ 
+							 if (Cooldowns.tryCooldown(p, "z4", 12000)) {
+		                			Vector dir = p.getLocation().getDirection().multiply(-6);
+		                            Vector vec = new Vector(dir.getX(), 1, dir.getZ());
+		                            p.setVelocity(vec);
+		                	 }else{
+		                         p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z4") / 1000) + " seconds left!");
+		                         p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+		                         return;
+		                	 }
+		                	 }else{
+		                		 if(p.getItemInHand().getType() == Material.COAL){ 
+									 if (Cooldowns.tryCooldown(p, "z5", 12000)) {
+										 p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 80,5));
+										 Vector dir = p.getLocation().getDirection().multiply(8);
+				                            Vector vec = new Vector(dir.getX(), 2, dir.getZ());
+				                            p.setVelocity(vec);
+				                            Location loc = new Location(p.getWorld(), p.getLocation().getX(), p.getLocation().getY()-2, p.getLocation().getZ());
+				                            Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.CREEPER);
+				                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {ignited:1}");
+				                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {Fuse:4}");
+				                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {Invisible:1}");
+				                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {Silent:1}");
+				                            
+				                	 }else{
+				                         p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z5") / 1000) + " seconds left!");
+				                         p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+				                         return;
+				                	 }
+				                	 }else{
+				                		 if(p.getItemInHand().getType() == Material.BONE){ 
+				                			 if (Cooldowns.tryCooldown(p, "z6", 12000)) {
+						                		for (Entity entity : p.getNearbyEntities(5D, 5D, 5D)){
+						                			Vector dir = p.getLocation().getDirection().multiply(4);
+						                            Vector vec = new Vector(dir.getX(), 2, dir.getZ());
+						                			entity.setVelocity(vec);
+						                			}
+
+
+						                	 }else{
+						                         p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z6") / 1000) + " seconds left!");
+						                         p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+						                         return;
+						                	 }
+						                	 }else{
+						                		 if(p.getItemInHand().getType() == Material.GHAST_TEAR){ 
+						                			 if (Cooldowns.tryCooldown(p, "z7", 40000)) {
+						                				 for (Player player : Bukkit.getOnlinePlayers()){
+						                				 player.hidePlayer(p);
+						                				 p.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "You are now invisible");
+						                				 getServer().getScheduler().scheduleSyncDelayedTask(this,new Runnable(){
+						                	                    public void run()
+						                	                    {
+						 
+						                	                    	player.showPlayer(p); 
+						                	                    	p.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "You are visible again");
+						                	     
+						                	                		
+						                	                	
+						                	                   }
+						                	                },200L);
+						                				 }
+						                			 }else{
+								                         p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z7") / 1000) + " seconds left!");
+								                         p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+								                         return;
+						                			 }
+						                			 }else{
+						                				 if(p.getItemInHand().getType() == Material.POTION){ 
+						                					 if (Cooldowns.tryCooldown(p, "z8", 14000)) {
+						                				    	 p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 180,1));
+						                				    	 p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 280,3));
+						                				    	 p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 280,1));
+						                				    	 p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 280,1));
+						                				    	 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 280,2));
+						                					 }else{
+										                         p.sendMessage("§b§2[Spells]:§rYou have " + (Cooldowns.getCooldown(p, "z8") / 1000) + " seconds left!");
+										                         p.playSound(p.getLocation(), Sound.NOTE_PLING, 3, 3);
+										                         return;
+						                			 }
+						                	 }	      
+				                		 }
+				                	 }
+		                	 }
+						 }
+						 }
 	}
 	}
+	}
+
+
+//ARCHER KIT
+             	@EventHandler
+                public void PlayerBow(PlayerInteractEvent event){
+                    Player p = event.getPlayer();          
+                    if(event.getAction().equals(Action.LEFT_CLICK_AIR)){
+                        if(p.getItemInHand().getType() == Material.BOW){     
+                            	  event.setCancelled(true);
+                            	    	Arrow A = p.getPlayer().launchProjectile(Arrow.class);
+                                        A.setKnockbackStrength(1);  
+                        }else{
+                        	return;
+                        }
+                        }else{
+                        	   if(event.getAction().equals(Action.RIGHT_CLICK_AIR)){
+                        		   if(p.getItemInHand().getType() == Material.BOW){     
+                                 	  event.setCancelled(true);
+                                 	    	Arrow A = p.getPlayer().launchProjectile(Arrow.class);
+                                             A.setKnockbackStrength(0);  
+                                             Vector v = A.getVelocity().multiply(3);
+                                             A.setVelocity(v);
+                        		 
 }
+	}
+                        }
+	}
+	
+
 	 @EventHandler
 	 public void onRightClick1(PlayerInteractEntityEvent event){
 		 Player p = event.getPlayer();
 		 Entity entity = event.getRightClicked();
-		 if(entity.getCustomName().equalsIgnoreCase(ChatColor.DARK_PURPLE + "Sorcerer"));
+		 if(entity.getCustomName().equalsIgnoreCase(ChatColor.DARK_PURPLE + "Sorcerer")){
+		 PlayerInventory q= p.getInventory();
+		 q.clear();
 		 ItemStack BREAD = new ItemStack (Material.BLAZE_ROD);
          ItemMeta BREADMeta = BREAD.getItemMeta();
     
-         BREADMeta.setDisplayName(ChatColor.DARK_PURPLE + "<=Lighning Wand=>");
+         BREADMeta.setDisplayName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Lighning Wand");
          BREAD.setItemMeta(BREADMeta);
+         BREAD.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
 		 p.getInventory().addItem(new ItemStack(BREAD));
 		 
 		 ItemStack BREAD1 = new ItemStack (Material.STICK);
          ItemMeta BREAD1Meta = BREAD1.getItemMeta();
     
-         BREAD1Meta.setDisplayName(ChatColor.LIGHT_PURPLE + "<=Teleportation Wand=>");
+         BREAD1Meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Teleportation Wand");
          BREAD1.setItemMeta(BREAD1Meta);
-		 p.getInventory().addItem(new ItemStack(BREAD1));
+         BREAD1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+		  p.getInventory().addItem(new ItemStack(BREAD1));
+		
 		 
-}
+		 ItemStack BREAD2 = new ItemStack (Material.TORCH);
+         ItemMeta BREAD2Meta = BREAD2.getItemMeta();
+        
+         BREAD2Meta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Fireball Wand");
+         BREAD2.setItemMeta(BREAD2Meta);
+         BREAD2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+		 p.getInventory().addItem(new ItemStack(BREAD2));
+		 
+		 ItemStack BREAD3 = new ItemStack (Material.REDSTONE_TORCH_ON);
+         ItemMeta BREAD3Meta = BREAD3.getItemMeta();
+        
+         BREAD3Meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Healing Wand");
+         BREAD3.setItemMeta(BREAD3Meta);
+         BREAD3.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+         
+		 p.getInventory().addItem(new ItemStack(BREAD3));
+		 
+		 event.setCancelled(true);
+		 p.sendMessage(ChatColor.GREEN + "==========================================");
+		 p.sendMessage(ChatColor.DARK_PURPLE + "Selected kit: Sorcerer");
+		 p.sendMessage(ChatColor.GREEN + "==========================================");
+		 
+		 PlayerInventory inv = p.getInventory();
+		 
+		 ItemStack A = new ItemStack (Material.LEATHER_HELMET);
+         LeatherArmorMeta im = (LeatherArmorMeta) A.getItemMeta();
+         im.setColor(Color.PURPLE);
+         A.setItemMeta(im);
+
+         A.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+         inv.setHelmet(A);
+         
+    	 ItemStack A1 = new ItemStack (Material.LEATHER_LEGGINGS);
+         LeatherArmorMeta im1 = (LeatherArmorMeta) A.getItemMeta();
+         im1.setColor(Color.PURPLE);
+         A1.setItemMeta(im);
+
+         A1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+         inv.setLeggings(A1);
+         
+		 ItemStack A2 = new ItemStack (Material.LEATHER_CHESTPLATE);
+         LeatherArmorMeta im2 = (LeatherArmorMeta) A.getItemMeta();
+         im2.setColor(Color.PURPLE);
+         A2.setItemMeta(im);
+
+         A2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+         inv.setChestplate(A2);
+         
+    	 ItemStack A3 = new ItemStack (Material.LEATHER_BOOTS);
+         LeatherArmorMeta im3 = (LeatherArmorMeta) A.getItemMeta();
+         im3.setColor(Color.PURPLE);
+         
+         A3.setItemMeta(im3);
+
+         A3.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+         inv.setBoots(A3);
+         
+		
+		 
+		 }
+	 }
+		 @EventHandler
+		 public void onRightClick2(PlayerInteractEntityEvent event){
+			 Player p = event.getPlayer();
+			 Entity entity = event.getRightClicked();
+			 if(entity.getCustomName().equalsIgnoreCase(ChatColor.GREEN + "Archer")){
+			 PlayerInventory q= p.getInventory();
+			 q.clear();
+			 ItemStack BREAD1 = new ItemStack (Material.BOW);
+	         ItemMeta BREAD1Meta = BREAD1.getItemMeta();
+	    
+	         BREAD1Meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Bow");
+	         BREAD1.setItemMeta(BREAD1Meta);
+	         BREAD1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD1));
+			 
+			 ItemStack BREAD2 = new ItemStack (Material.EGG);
+	         ItemMeta BREAD2Meta = BREAD2.getItemMeta();
+	    
+	         BREAD2Meta.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "Trowable Bomb");
+	         BREAD2.setItemMeta(BREAD2Meta);
+	         BREAD2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 
+			 ItemStack BREAD3 = new ItemStack (Material.FEATHER);
+	         ItemMeta BREAD3Meta = BREAD3.getItemMeta();
+	    
+	         BREAD3Meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Leap");
+	         BREAD3.setItemMeta(BREAD3Meta);
+	         BREAD3.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD3));
+			 
+			 p.sendMessage(ChatColor.GREEN + "==========================================");
+			 p.sendMessage(ChatColor.YELLOW + "Selected kit: Archer");
+			 p.sendMessage(ChatColor.GREEN + "==========================================");
+			 
+			 PlayerInventory inv = p.getInventory();
+			 
+			 inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
+			 inv.setChestplate(new ItemStack(Material.GOLD_CHESTPLATE));
+			 inv.setLeggings(new ItemStack(Material.GOLD_LEGGINGS));
+			 inv.setBoots(new ItemStack(Material.LEATHER_BOOTS));
+
+
+			 event.setCancelled(true);
+			 }
+
+	 }
+		 @EventHandler
+		 public void onRightClick3(PlayerInteractEntityEvent event){
+			 Player p = event.getPlayer();
+			 Entity entity = event.getRightClicked();
+			 if(entity.getCustomName().equalsIgnoreCase(ChatColor.DARK_GREEN + "Ogre")){
+			 PlayerInventory q= p.getInventory();
+			 q.clear();
+			 ItemStack BREAD = new ItemStack (Material.COAL);
+	         ItemMeta BREADMeta = BREAD.getItemMeta();
+	    
+	         BREADMeta.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "Offensive Jump");
+	         BREAD.setItemMeta(BREADMeta);
+	         BREAD.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD));
+			 
+			 ItemStack BREAD1 = new ItemStack (Material.BONE);
+	         ItemMeta BREAD1Meta = BREAD1.getItemMeta();
+	    
+	         BREAD1Meta.setDisplayName(ChatColor.WHITE + "" + ChatColor.BOLD + "Club attack");
+	         BREAD1.setItemMeta(BREAD1Meta);
+	         BREAD1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD1));
+			 
+			 PlayerInventory inv = p.getInventory();
+			 
+			 ItemStack BREAD2 = new ItemStack (Material.STONE_AXE);
+			 BREAD2.setDurability((short) 9999999);
+	         ItemMeta BREAD2Meta = BREAD2.getItemMeta();
+	    
+	         BREAD2Meta.setDisplayName(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Ogre's Axe");
+	         BREAD2.setItemMeta(BREAD2Meta);
+	         BREAD2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 3);
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 
+			 
+			 ItemStack A = new ItemStack (Material.LEATHER_HELMET);
+	         LeatherArmorMeta im = (LeatherArmorMeta) A.getItemMeta();
+	         im.setColor(Color.GREEN);
+	         A.setItemMeta(im);
+
+	         A.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setHelmet(A);
+	         
+	    	 ItemStack A1 = new ItemStack (Material.LEATHER_LEGGINGS);
+	         LeatherArmorMeta im1 = (LeatherArmorMeta) A.getItemMeta();
+	         im1.setColor(Color.GREEN);
+	         A1.setItemMeta(im);
+
+	         A1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setLeggings(A1);
+	         
+			 ItemStack A2 = new ItemStack (Material.LEATHER_CHESTPLATE);
+	         LeatherArmorMeta im2 = (LeatherArmorMeta) A.getItemMeta();
+	         im2.setColor(Color.GREEN);
+	         A2.setItemMeta(im);
+
+	         A2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setChestplate(A2);
+	         
+	    	 ItemStack A3 = new ItemStack (Material.LEATHER_BOOTS);
+	         LeatherArmorMeta im3 = (LeatherArmorMeta) A.getItemMeta();
+	         im3.setColor(Color.GREEN);
+	         
+	         A3.setItemMeta(im3);
+
+	         A3.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setBoots(A3);
+			  
+			  p.sendMessage(ChatColor.GREEN + "==========================================");
+				 p.sendMessage(ChatColor.DARK_GREEN + "Selected kit: Ogre");
+				 p.sendMessage(ChatColor.GREEN + "==========================================");
+				 event.setCancelled(true);
+			 }
+		 }
+		 @EventHandler
+		 public void onRightClick4(PlayerInteractEntityEvent event){
+			 Player p = event.getPlayer();
+			 Entity entity = event.getRightClicked();
+			 if(entity.getCustomName().equalsIgnoreCase(ChatColor.WHITE + "Vampire")){
+			 PlayerInventory q= p.getInventory();
+			 q.clear();
+			 ItemStack BREAD = new ItemStack (Material.GHAST_TEAR);
+	         ItemMeta BREADMeta = BREAD.getItemMeta();
+	    
+	         BREADMeta.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "Tear of vanishing");
+	         BREAD.setItemMeta(BREADMeta);
+	         BREAD.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD));
+			 
+			 ItemStack BREAD1 = new ItemStack (Material.WOOD_SWORD);
+	         ItemMeta BREAD1Meta = BREAD1.getItemMeta();
+	    
+	         BREAD1Meta.setDisplayName(ChatColor.BLACK + "" + ChatColor.BOLD + "Life draining sword");
+	         BREAD1.setItemMeta(BREAD1Meta);
+	         BREAD1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD1));
+			 
+			 ItemStack BREAD2 = new ItemStack (Material.POTION, 1);
+	         ItemMeta BREAD2Meta = BREAD2.getItemMeta();
+	    
+	         BREAD2Meta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Potion of vampiralism ");
+	         BREAD2.setItemMeta(BREAD2Meta);
+	         BREAD2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+			 p.getInventory().addItem(new ItemStack(BREAD2));
+			 
+			 PlayerInventory inv = p.getInventory();
+			 
+			 
+			 ItemStack A = new ItemStack (Material.CHAINMAIL_HELMET);
+
+	         A.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setHelmet(A);
+	         
+	    	 ItemStack A1 = new ItemStack (Material.LEATHER_LEGGINGS);
+	         LeatherArmorMeta im1 = (LeatherArmorMeta) A1.getItemMeta();
+	         im1.setColor(Color.WHITE);
+	         A1.setItemMeta(im1);
+
+	         A1.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setLeggings(A1);
+	         
+			 ItemStack A2 = new ItemStack (Material.LEATHER_CHESTPLATE);
+	         LeatherArmorMeta im2 = (LeatherArmorMeta) A2.getItemMeta();
+	         im2.setColor(Color.WHITE);
+	         A2.setItemMeta(im2);
+
+	         A2.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setChestplate(A2);
+	         
+	    	 ItemStack A3 = new ItemStack (Material.CHAINMAIL_BOOTS);
+	      
+	         A3.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+	         inv.setBoots(A3);
+			  
+			  p.sendMessage(ChatColor.GREEN + "==========================================");
+				 p.sendMessage(ChatColor.WHITE + "Selected kit: Vampire");
+				 p.sendMessage(ChatColor.GREEN + "==========================================");
+				 event.setCancelled(true);
+			 }
+		 }
 
 
 @EventHandler
-public void onPlayerFish(PlayerFishEvent event) {
+public void GiveShit(PlayerInteractEvent event) {
 	Player p = event.getPlayer();
 	Location loc = p.getLocation();
+	Action a = event.getAction();
+	if(a.equals(Action.RIGHT_CLICK_BLOCK))
+    if(p.getItemInHand().getType() == Material.DIAMOND_SWORD){     
 	Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
 	 irongolem.setCustomName(ChatColor.DARK_PURPLE + "Sorcerer");
 	 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
+	 p.sendMessage(ChatColor.GREEN + "Succesfully spawned the " + ChatColor.DARK_PURPLE + "Sorcerer");
+    
+    
+}else{
+	 if(p.getItemInHand().getType() == Material.GOLD_SWORD){    
+		 Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
+		 irongolem.setCustomName(ChatColor.GREEN + "Archer");
+		 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
+		 p.sendMessage(ChatColor.GREEN + "Succesfully spawned the " + ChatColor.YELLOW + "Archer");
+	 }else{
+		 if(p.getItemInHand().getType() == Material.IRON_SWORD){    
+			 Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
+			 irongolem.setCustomName(ChatColor.DARK_GREEN + "Ogre");
+			 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
+			 p.sendMessage(ChatColor.GREEN + "Succesfully spawned the " + ChatColor.DARK_GREEN + "Ogre");
+		 }else{
+			 if(p.getItemInHand().getType() == Material.STONE_SWORD){    
+				 Entity irongolem = loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
+				 irongolem.setCustomName(ChatColor.WHITE + "Vampire");
+				 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "entitydata " + irongolem.getUniqueId() + " {NoAI:1}");
+				 p.sendMessage(ChatColor.GREEN + "Succesfully spawned the " + ChatColor.WHITE + "Vampire");
+	}
+}
+}
+}
+}
+
+	@EventHandler
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (event.getEntity().getType() == EntityType.EGG) {
+            Egg egg = (Egg) event.getEntity();
+            @SuppressWarnings({ "deprecation", "unused" })
+           
+            Player p = (Player) egg.getShooter(); 
+            for(Entity e : egg.getNearbyEntities(10,5,10))
+            	((LivingEntity)e).addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,200, 200), true);    
+            for(Entity e1 : egg.getNearbyEntities(10,5,10))
+            	((LivingEntity)e1).addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION,200, 200), true);    
+            
+        }
+	}
+@EventHandler
+public void onAttack(EntityDamageByEntityEvent event) {
+if(event.getEntity() instanceof Player) {
+Player defender = (Player)event.getEntity();
+if( event.getDamager() instanceof Player ) {
+Player attacker = (Player)event.getDamager();
+if(attacker.getItemInHand().getType() == Material.WOOD_SWORD){
+Random r = new Random();
+int rn = r.nextInt(10);
+if(rn > 1){
+return;
+	}else if(rn < 2){
+		attacker.setHealth(20D);
+		defender.getWorld().playEffect(defender.getLocation(), Effect.MOBSPAWNER_FLAMES, 200);
+		defender.getWorld().playEffect(defender.getLocation(), Effect.ENDER_SIGNAL, 400);
+		defender.getWorld().playEffect(defender.getLocation(), Effect.EXTINGUISH, 300);
+		defender.getWorld().playEffect(defender.getLocation(), Effect.SMOKE, 300);
+
+
+}
+}
+}
+}
+}
+
+	
+          
+
+
+	
+	@EventHandler
+	public void onPlayerDrop(PlayerDropItemEvent event) {
+		event.setCancelled(true);
+
+	}
+	{
+}
+
+@EventHandler
+public void onDamage(EntityDamageEvent event) {
+if ((event.getEntity() instanceof Player)) {
+Player player = (Player) event.getEntity();
+player.getInventory().getHelmet().setDurability((short) 0);
+player.getInventory().getChestplate().setDurability((short) 0);
+player.getInventory().getLeggings().setDurability((short) 0);
+player.getInventory().getBoots().setDurability((short) 0);
+}
+{
+
+
+	{
+}
+}
+new BukkitRunnable()
+{
+    public void run()
+    {
+       
+    }
+}.run(); 
+}
+}
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
 }
 }
 
